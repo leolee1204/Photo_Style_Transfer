@@ -11,6 +11,8 @@ from tensorflow.python.keras import backend as K
 import functools
 import IPython.display
 import numpy as np
+import cv2
+
 
 def load_file(image_path):
     image = Image.open(image_path)
@@ -29,25 +31,20 @@ def load_file(image_path):
 
     return im_array
 
-def show_im(img,title=None):
+def show_im(img):
     img=np.squeeze(img,axis=0) #squeeze array to drop batch axis #降一維
-    plt.imshow(np.uint8(img))
-    if title is None:
-        pass
-    else:
-        plt.title(title)
-    plt.imshow(np.uint8(img))
+    return np.uint8(img)
 
 content_path = 'leo.png'
-style_path = 'Vincent-2.jpg'
+style_path = 'plant1.png'
 plt.figure(figsize=(10,10))
 content = load_file(content_path)
 style = load_file(style_path)
-plt.subplot(1,2,1)
-show_im(content,'Content Image')
-plt.subplot(1,2,2)
-show_im(style,'Style Image')
-plt.show()
+# plt.subplot(1,2,1)
+# show_im(content,'Content Image')
+# plt.subplot(1,2,2)
+# show_im(style,'Style Image')
+# plt.show()
 
 def img_preprocess(img_path):
     image=load_file(img_path)
@@ -236,18 +233,39 @@ def run_style_transfer(content_path, style_path, epochs=500, content_weight=1e3,
 
 best, best_loss,image = run_style_transfer(content_path,
                                      style_path, epochs=500)
-plt.figure(figsize=(15,15))
-plt.subplot(1,3,3)
-plt.imshow(best)
-plt.title('Style transfer Image')
-plt.xticks([])
-plt.yticks([])
-plt.subplot(1,3,1)
-show_im(content,'Content Image')
-plt.xticks([])
-plt.yticks([])
-plt.subplot(1,3,2)
-show_im(style,'Style Image')
-plt.xticks([])
-plt.yticks([])
-plt.savefig('style_tranfer-2.png')
+
+img = cv2.imread(content_path)
+img = cv2.cvtColor(img,cv2.COLOR_BGR2RGB)
+img[:,262:,:] = best[:,262:,:]
+
+content = show_im(content)
+style = show_im(style)
+
+result = [content,style,best,img]
+result_lable = ['origan','style','remix','half_mix']
+for i in range(len(result)):
+    plt.subplot(2,2,i+1)
+    plt.title(result_lable[i])
+    plt.xticks([]);plt.yticks([])
+    plt.imshow(result[i])
+
+plt.savefig('four_step_style.png')
+plt.show()
+
+# plt.subplot(1,3,3)
+# plt.imshow(best)
+# show_im(style,'Style Image')
+
+# plt.xticks([]);plt.yticks([])
+# plt.savefig('leo_transfer.png')
+#
+# img = cv2.imread('leo.png')
+# style = cv2.imread('leo_transfer.png')
+#
+# edge = 262
+# img_right = img[:,edge:,:]
+# img[:,edge:,:] = style
+#
+# cv2.imshow('result_finish',img)
+# cv2.waitKey(0)
+# cv2.destroyAllWindows()
